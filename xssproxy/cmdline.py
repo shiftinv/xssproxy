@@ -7,7 +7,10 @@ from .manager import ServerManager
 
 
 def parse_args(args: List[str] = None):
-    parser = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    parser = argparse.ArgumentParser(
+        prog=__name__.split('.')[0],
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter
+    )
 
     parser.add_argument('-wh', '--web_host', default='0.0.0.0', help='webserver listen address')
     parser.add_argument('-wp', '--web_port', default=8000, type=int, help='webserver listen port')
