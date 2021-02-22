@@ -17,6 +17,7 @@ def parse_args(args: List[str] = None):
     parser.add_argument('-ph', '--proxy_host', default='127.0.0.1', help='proxy listen address')
     parser.add_argument('-pp', '--proxy_port', default=4141, type=int, help='proxy listen port')
     parser.add_argument('-d', '--debug', action='store_true', help='set logging level to debug')
+    parser.add_argument('-t', '--timeout', default=0, type=float, help='proxy request timeout (set to 0 to disable)')
 
     return parser.parse_args(args)
 

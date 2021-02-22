@@ -3,7 +3,7 @@ import logging
 import asyncio
 import base64
 from aiohttp import web
-from typing import Dict, List, Tuple
+from typing import Dict, List, Tuple, Optional
 
 
 class WebsocketRemote:
@@ -14,13 +14,14 @@ class WebsocketRemote:
     _logger = logging.getLogger(__name__)
 
     @classmethod
-    async def http_request(cls, websocket: web.WebSocketResponse, method: str, url: str, headers: List[Tuple[str, str]], body: bytes):
+    async def http_request(cls, websocket: web.WebSocketResponse, timeout: Optional[float], method: str, url: str, headers: List[Tuple[str, str]], body: bytes):
         seq = cls.__seq
         cls.__seq += 1
 
         cls._logger.debug(f'sending request with seq {seq} for {url} ({method}, headers: {len(headers)}, size: {len(body)})')
         response = await cls.__send_and_wait(
             websocket,
+            timeout,
             seq,
             {
                 'method': method,
@@ -59,7 +60,8 @@ class WebsocketRemote:
         cls.__events[seq].set()
 
     @classmethod
-    async def __send_and_wait(cls, websocket: web.WebSocketResponse, seq: int, obj: Dict):
+    async def __send_and_wait(cls, websocket: web.WebSocketResponse, timeout: Optional[float], seq: int, obj: Dict):
+        # TODO: use futures instead of events
         evt = asyncio.Event()
         cls.__events[seq] = evt
 
@@ -69,7 +71,12 @@ class WebsocketRemote:
         })
 
         cls._logger.debug(f'waiting for response for seq {seq}')
-        await evt.wait()
+
+        try:
+            await asyncio.wait_for(evt.wait(), timeout)
+        except asyncio.TimeoutError:
+            cls._logger.error(f'request for seq {seq} timed out')
+            raise
         del cls.__events[seq]
 
         if seq not in cls.__responses:

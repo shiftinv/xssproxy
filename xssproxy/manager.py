@@ -63,6 +63,8 @@ class ServerManager:
         self.web_app['websocket_storage'] = storage
         setattr(self.proxy_server, 'websocket_storage', storage)
 
+        setattr(self.proxy_server, 'websocket_request_timeout', args.timeout if args.timeout != 0.0 else None)
+
         # start both servers
         self._logger.info(f'starting web server')
         await self.start_runner(

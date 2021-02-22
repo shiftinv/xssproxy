@@ -1,3 +1,4 @@
+import asyncio
 from aiohttp import web
 
 from ..websocket_remote import WebsocketRemote
@@ -6,7 +7,7 @@ from ..websocket_remote import WebsocketRemote
 async def handler(request: web.BaseRequest):
     logger = request.protocol.logger
 
-    websocket = getattr(request.protocol._manager, 'websocket_storage').get()
+    websocket = request.protocol._manager.websocket_storage.get()
     if websocket is None:
         return web.Response(status=553, text='no websocket connected')
 
@@ -15,14 +16,22 @@ async def handler(request: web.BaseRequest):
 
     # drop 'User-Agent' header
     headers = [(k, v) for k, v in request.headers.items() if k.lower() != 'user-agent']
+
     # send request through websocket
-    remote_response = await WebsocketRemote.http_request(
-        websocket,
-        request.method,
-        request.raw_path,
-        headers,
-        await request.read()
-    )
+    try:
+        remote_response = await WebsocketRemote.http_request(
+            websocket,
+            request.protocol._manager.websocket_request_timeout,
+            request.method,
+            request.raw_path,
+            headers,
+            await request.read()
+        )
+    except asyncio.TimeoutError:
+        return web.Response(
+            status=556,
+            text='request timed out'
+        )
 
     if 'error' in remote_response:
         err = remote_response['error']
