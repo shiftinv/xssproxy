@@ -28,8 +28,10 @@ async def _handle_js(request: web.Request):
 
 
 async def _handle_websocket(request: web.BaseRequest):
+    logger = request.app.logger
+
     peer = request.transport.get_extra_info("peername")
-    request.app.logger.info(f'got new websocket connection from {peer[0]}:{peer[1]}')
+    logger.info(f'got new websocket connection from {peer[0]}:{peer[1]}')
 
     ws = web.WebSocketResponse(heartbeat=10)
     await ws.prepare(request)
@@ -39,7 +41,7 @@ async def _handle_websocket(request: web.BaseRequest):
         try:
             storage.get().close()
         except Exception:
-            request.app.logger.exception('exception occurred while closing existing websocket:')
+            logger.exception('exception occurred while closing existing websocket:')
 
     storage.set(ws)
     try:
@@ -47,7 +49,7 @@ async def _handle_websocket(request: web.BaseRequest):
             try:
                 WebsocketRemote.response_callback(msg.data)
             except Exception:
-                request.app.logger.exception('exception occurred while calling response callback:')
+                logger.exception('exception occurred while calling response callback:')
     finally:
         storage.clear()
 

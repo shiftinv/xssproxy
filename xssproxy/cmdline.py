@@ -29,7 +29,6 @@ def run():
     handler.setFormatter(logging.Formatter('%(asctime)s: [%(levelname)s] %(name)s: %(message)s'))
     base_logger.addHandler(handler)
     base_logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
-    # logging.basicConfig(level=logging.DEBUG)
 
     with ServerManager() as mgr:
         loop = asyncio.get_event_loop()

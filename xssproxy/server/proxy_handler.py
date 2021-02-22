@@ -4,6 +4,8 @@ from ..websocket_remote import WebsocketRemote
 
 
 async def handler(request: web.BaseRequest):
+    logger = request.protocol.logger
+
     websocket = getattr(request.protocol._manager, 'websocket_storage').get()
     if websocket is None:
         return web.Response(status=418, text='no websocket connected')
@@ -18,7 +20,7 @@ async def handler(request: web.BaseRequest):
 
     if 'error' in remote_response:
         err = remote_response['error']
-        request.protocol.logger.error(f'received error: {err}')
+        logger.error(f'received error: {err}')
         return web.Response(
             status=418,
             text=f'request failed (error: {err})'
