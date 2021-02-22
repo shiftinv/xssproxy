@@ -41,8 +41,10 @@ async def handler(request: web.BaseRequest):
             text=f'request failed (error: {err})'
         )
     else:
-        # remove content length (some web servers report inaccurate values for some reason)
-        remote_response['headers'] = [h for h in remote_response['headers'] if h[0].lower() != 'content-length']
+        # prefix content-length/content-encoding headers to prevent collisions
+        for h in remote_response['headers']:
+            if h[0].lower() in ['content-length', 'content-encoding']:
+                h[0] = f'X-Remote-{h[0]}'
         return web.Response(
             status=remote_response['status'],
             headers=remote_response['headers'],
