@@ -53,7 +53,8 @@ async def _handle_websocket(request: web.BaseRequest):
             except Exception:
                 logger.exception('exception occurred while calling response callback:')
     finally:
-        storage.clear()
+        if storage.get() is ws:
+            storage.clear()
 
 
 def setup_app(app: web.Application):
