@@ -33,7 +33,7 @@ async def _handle_websocket(request: web.BaseRequest):
     peer = request.transport.get_extra_info("peername")
     logger.info(f'got new websocket connection from {peer[0]}:{peer[1]}')
 
-    ws = web.WebSocketResponse(heartbeat=10)
+    ws = web.WebSocketResponse(heartbeat=10, max_msg_size=128 * 1024 * 1024)
     await ws.prepare(request)
 
     storage = request.app['websocket_storage']

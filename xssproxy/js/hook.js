@@ -2,6 +2,17 @@
 (function () {
     'use strict';
 
+    // https://stackoverflow.com/a/9458996/5080607
+    function arrayBufferToBase64(buffer) {
+        var binary = '';
+        const bytes = new Uint8Array( buffer );
+        const len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return btoa(binary);
+    }
+
     function httpRequest(ws, seq, method, url, headers, body) {
         if (!method || !url || headers === undefined || body === undefined)
             throw new Error('invalid request parameters');
@@ -24,7 +35,7 @@
                 sendResponse(ws, seq, {
                     status: req.status,
                     headers: headers,
-                    body: btoa(String.fromCharCode.apply(null, new Uint8Array(req.response)))
+                    body: arrayBufferToBase64(req.response)
                 });
             } catch (e) {
                 sendResponseError(ws, seq, e);
@@ -43,7 +54,7 @@
 
     function sendResponseError(ws, seq, err) {
         if (err.message !== undefined && err.stack !== undefined)
-            err = err.message + ' [stack: ' + err.stack + ']';
+            err = err.message + ' [stack:\n' + err.stack + ']';
         sendResponse(ws, seq, {error: err});
     }
 
