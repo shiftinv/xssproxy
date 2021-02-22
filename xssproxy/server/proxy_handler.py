@@ -14,8 +14,8 @@ async def handler(request: web.BaseRequest):
     if not request.raw_path.startswith('http://'):
         return web.Response(status=554, text='invalid url')
 
-    # drop 'User-Agent' header
-    headers = [(k, v) for k, v in request.headers.items() if k.lower() != 'user-agent']
+    # drop all headers except content-type
+    headers = [(k, v) for k, v in request.headers.items() if k.lower() == 'content-type']
 
     # send request through websocket
     try:
