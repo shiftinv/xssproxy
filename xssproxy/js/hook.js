@@ -9,6 +9,7 @@
         const req = new XMLHttpRequest();
         req.open(method, url, true);
         req.withCredentials = true;
+        req.responseType = 'arraybuffer';
         for (const header of headers) {
             req.setRequestHeader(header[0], header[1]);
         }
@@ -19,11 +20,15 @@
                 .split('\r\n')
                 .map(function (h) { return h.split(': ', 2); });
 
-            sendResponse(ws, seq, {
-                status: req.status,
-                headers: headers,
-                body: btoa(req.responseText)
-            });
+            try {
+                sendResponse(ws, seq, {
+                    status: req.status,
+                    headers: headers,
+                    body: btoa(String.fromCharCode.apply(null, new Uint8Array(req.response)))
+                });
+            } catch (e) {
+                sendResponseError(ws, seq, e);
+            }
         };
         req.onerror = function () {
             sendResponseError(ws, seq, 'xhr error, likely a cors issue');
@@ -37,8 +42,8 @@
     }
 
     function sendResponseError(ws, seq, err) {
-        if (typeof err !== 'string')
-            err = err.toString();
+        if (err.message !== undefined && err.stack !== undefined)
+            err = err.message + ' [stack: ' + err.stack + ']';
         sendResponse(ws, seq, {error: err});
     }
 
