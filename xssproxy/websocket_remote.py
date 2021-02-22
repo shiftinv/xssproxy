@@ -3,7 +3,7 @@ import logging
 import asyncio
 import base64
 from aiohttp import web
-from typing import Dict
+from typing import Dict, List, Tuple
 
 
 class WebsocketRemote:
@@ -14,7 +14,7 @@ class WebsocketRemote:
     _logger = logging.getLogger(__name__)
 
     @classmethod
-    async def http_request(cls, websocket: web.WebSocketResponse, method: str, url: str, headers: Dict[str, str], body: bytes):
+    async def http_request(cls, websocket: web.WebSocketResponse, method: str, url: str, headers: List[Tuple[str, str]], body: bytes):
         seq = cls.__seq
         cls.__seq += 1
 
@@ -30,6 +30,9 @@ class WebsocketRemote:
             }
         )
         cls._logger.debug(f'got response for seq {seq}')
+
+        if 'error' in response:
+            return response
 
         keys = set(response.keys())
         if keys != {'status', 'headers', 'body'}:

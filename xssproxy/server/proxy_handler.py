@@ -11,16 +11,24 @@ async def handler(request: web.BaseRequest):
     remote_response = await WebsocketRemote.http_request(
         websocket,
         request.method,
-        request.raw_path,  # .path_qs?
-        dict(request.headers),
+        request.raw_path,
+        list(request.headers.items()),
         await request.read()
     )
 
-    return web.Response(
-        status=remote_response['status'],
-        headers=remote_response['headers'],
-        body=remote_response['body']
-    )
+    if 'error' in remote_response:
+        err = remote_response['error']
+        request.protocol.logger.error(f'received error: {err}')
+        return web.Response(
+            status=418,
+            text=f'request failed (error: {err})'
+        )
+    else:
+        return web.Response(
+            status=remote_response['status'],
+            headers=remote_response['headers'],
+            body=remote_response['body']
+        )
 
 
 def setup_server(server: web.Server):

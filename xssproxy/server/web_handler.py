@@ -16,7 +16,7 @@ async def _handle_js(request: web.Request):
     if not js_path.is_file():
         return web.Response(status=HTTPStatus.NOT_FOUND)
 
-    sock_url = urljoin(f'http://{request.host}', _socket_endpoint)
+    sock_url = urljoin(f'ws://{request.host}', _socket_endpoint)
 
     js_text = js_path.read_text()
     js_text = js_text.replace('{{SOCK_URL}}', sock_url)
@@ -34,8 +34,14 @@ async def _handle_websocket(request: web.BaseRequest):
     ws = web.WebSocketResponse(heartbeat=10)
     await ws.prepare(request)
 
-    request.app['websocket_storage'].set(ws)
+    storage = request.app['websocket_storage']
+    if storage.get() is not None:
+        try:
+            storage.get().close()
+        except Exception:
+            request.app.logger.exception('exception occurred while closing existing websocket:')
 
+    storage.set(ws)
     try:
         async for msg in ws:
             try:
@@ -43,7 +49,7 @@ async def _handle_websocket(request: web.BaseRequest):
             except Exception:
                 request.app.logger.exception('exception occurred while calling response callback:')
     finally:
-        request.app['websocket_storage'].clear()
+        storage.clear()
 
 
 def setup_app(app: web.Application):
