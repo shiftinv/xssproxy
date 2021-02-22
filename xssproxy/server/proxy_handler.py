@@ -13,11 +13,14 @@ async def handler(request: web.BaseRequest):
     if not request.raw_path.startswith('http://'):
         return web.Response(status=554, text='invalid url')
 
+    # drop 'User-Agent' header
+    headers = [(k, v) for k, v in request.headers.items() if k.lower() != 'user-agent']
+    # send request through websocket
     remote_response = await WebsocketRemote.http_request(
         websocket,
         request.method,
         request.raw_path,
-        list(request.headers.items()),
+        headers,
         await request.read()
     )
 
