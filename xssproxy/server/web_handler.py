@@ -37,12 +37,14 @@ async def _handle_websocket(request: web.BaseRequest):
     await ws.prepare(request)
 
     storage = request.app['websocket_storage']
+    # close any existing connection
     if storage.get() is not None:
         try:
-            storage.get().close()
+            await storage.get().close()
         except Exception:
             logger.exception('exception occurred while closing existing websocket:')
 
+    # collect messages from new connection
     storage.set(ws)
     try:
         async for msg in ws:
