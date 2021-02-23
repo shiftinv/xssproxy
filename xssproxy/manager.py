@@ -58,12 +58,13 @@ class ServerManager:
         proxy_handler.setup_server(self.proxy_server)
 
         # create websocket storage for sharing websockets between web server and proxy server
-        # TODO: this is kinda messy
+        # TODO: there is definitely a better way to do this
         storage = WebsocketStorage()
         self.web_app['websocket_storage'] = storage
         setattr(self.proxy_server, 'websocket_storage', storage)
 
         setattr(self.proxy_server, 'websocket_request_timeout', args.timeout if args.timeout != 0.0 else None)
+        setattr(self.proxy_server, 'websocket_add_forward_headers', [s.strip().lower() for s in (['content-type'] + args.forward_headers)])
 
         # start both servers
         self._logger.info(f'starting web server')

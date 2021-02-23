@@ -15,7 +15,7 @@ async def handler(request: web.BaseRequest):
         return web.Response(status=554, text='invalid url')
 
     # drop all headers except content-type
-    headers = [(k, v) for k, v in request.headers.items() if k.lower() == 'content-type']
+    headers = [(k, v) for k, v in request.headers.items() if k.lower() in request.protocol._manager.websocket_add_forward_headers]
 
     # send request through websocket
     try:

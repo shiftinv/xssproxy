@@ -11,7 +11,7 @@ _socket_endpoint = '/ws'
 
 async def _handle_js(request: web.Request):
     req_filename = Path(request.path).name
-    # this part can probably be improved
+    # TODO: this part can probably be improved
     js_path = (Path(__file__) / '..' / '..' / 'js' / req_filename).resolve()
     if not js_path.is_file():
         return web.Response(status=HTTPStatus.NOT_FOUND)

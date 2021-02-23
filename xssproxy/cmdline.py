@@ -18,6 +18,7 @@ def parse_args(args: List[str] = None):
     parser.add_argument('-pp', '--proxy_port', default=4141, type=int, help='proxy listen port')
     parser.add_argument('-d', '--debug', action='store_true', help='set logging level to debug')
     parser.add_argument('-t', '--timeout', default=0, type=float, help='proxy request timeout (set to 0 to disable)')
+    parser.add_argument('-f', '--forward_header', default=[], action='append', metavar='HEADER', dest='forward_headers', help='names of request headers that will be forwarded by the proxy (in addition to "Content-Type")')
 
     return parser.parse_args(args)
 

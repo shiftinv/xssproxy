@@ -16,7 +16,7 @@ pip install git+https://github.com/shiftinv/xssproxy
 
 ```
 usage: xssproxy [-h] [-wh WEB_HOST] [-wp WEB_PORT] [-ph PROXY_HOST]
-                [-pp PROXY_PORT] [-d] [-t TIMEOUT]
+                [-pp PROXY_PORT] [-d] [-t TIMEOUT] [-f HEADER]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -31,6 +31,9 @@ optional arguments:
   -d, --debug           set logging level to debug (default: False)
   -t TIMEOUT, --timeout TIMEOUT
                         proxy request timeout (set to 0 to disable) (default: 0)
+  -f HEADER, --forward_header HEADER
+                        names of request headers that will be forwarded by the
+                        proxy (in addition to "Content-Type") (default: [])
 ```
 
 
