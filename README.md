@@ -11,7 +11,7 @@ pip install git+https://github.com/shiftinv/xssproxy
 
 ## Usage
 1. Start `xssproxy`
-2. Use an XSS vulnerability to make the targeted browser load `http://<ip>:8000/hook.js`
+2. Use an XSS vulnerability to make the targeted browser load `http://<local ip>:8000/hook.js`
 3. Send requests through the proxy on `127.0.0.1:4141` (e.g. `curl -v --proxy http://127.0.0.1:4141 http://example.com`)
 
 ```
@@ -37,7 +37,16 @@ optional arguments:
 ```
 
 
+## Notes
+- By default only the `Content-Type` header gets forwarded (see `-f` parameter); most headers can't be set on `XMLHttpRequest`s anyway, notably `Host` and `Cookie` (exhaustive list [here][1])
+- CORS will likely be an issue in most cases (which is technically a good thing from a security perspective, not so much for tools like this one though)
+
+
 ## Credits
 Inspired by
 - [BeEF](https://github.com/beefproject/beef)'s tunneling proxy
 - [raz-varren/xsshell](https://github.com/raz-varren/xsshell)
+
+
+
+[1]: https://developer.mozilla.org/en-US/docs/Glossary/Forbidden_header_name
