@@ -30,7 +30,6 @@ class WebsocketRemote:
                 'body': base64.b64encode(body).decode()  # not the most efficient encoding ('latin-1' could work as well), but it'll do for now
             }
         )
-        cls._logger.debug(f'got response for seq {seq}')
 
         if 'error' in response:
             return response
@@ -79,6 +78,7 @@ class WebsocketRemote:
             raise
         del cls.__events[seq]
 
-        if seq not in cls.__responses:
+        if seq not in cls.__responses:  # this *should* never happen, but it's still handled just to be sure
             raise RuntimeError(f'event for seq {seq} was set, but no matching response exists')
+        cls._logger.debug(f'got response for seq {seq}')
         return cls.__responses.pop(seq)

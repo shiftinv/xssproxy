@@ -30,7 +30,7 @@ async def _handle_js(request: web.Request):
 async def _handle_websocket(request: web.BaseRequest):
     logger = request.app.logger
 
-    peer = request.transport.get_extra_info("peername")
+    peer = request.transport.get_extra_info('peername')
     logger.info(f'got new websocket connection from {peer[0]}:{peer[1]}')
 
     ws = web.WebSocketResponse(heartbeat=10, max_msg_size=128 * 1024 * 1024)

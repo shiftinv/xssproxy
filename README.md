@@ -1,5 +1,5 @@
 # xssproxy
-Pseudo HTTP proxy for sending requests through a hooked web browser, starting from an XSS vulnerability.
+Pseudo HTTP proxy for sending requests through a hooked web browser, using a cross-site-scripting/XSS vulnerability
 
 ---
 
