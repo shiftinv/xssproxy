@@ -13,18 +13,12 @@ class ServerManager:
 
     def __init__(self):
         self.runners = []
-        self.web_app = None
-        self.proxy_server = None
 
     def __enter__(self):
         return self
 
     def __exit__(self, *args):
         loop = asyncio.get_event_loop()
-        if self.web_app:
-            ws = self.web_app['websocket_storage'].get()
-            if ws is not None:
-                loop.run_until_complete(ws.close())
         loop.run_until_complete(asyncio.gather(*[runner.cleanup() for runner in self.runners]))
 
     def __get_logging_params(self, type_name) -> Dict[str, logging.Logger]:
@@ -47,30 +41,30 @@ class ServerManager:
         #     -> as a workaround, pass to web.Server directly
 
         # initialize javascript/websocket server
-        self.web_app = web.Application(logger=self.__get_logging_params('webserver')['logger'])
-        web_handler.setup_app(self.web_app)
+        web_app = web.Application(logger=self.__get_logging_params('webserver')['logger'])
+        web_handler.setup_app(web_app)
 
         # initialize local proxy server
-        self.proxy_server = web.Server(
+        proxy_server = web.Server(
             None,
             **self.__get_logging_params('proxyserver')
         )
-        proxy_handler.setup_server(self.proxy_server)
+        proxy_handler.setup_server(proxy_server)
 
         # create websocket storage for sharing websockets between web server and proxy server
         # TODO: there is definitely a better way to do this
         storage = WebsocketStorage()
-        self.web_app['websocket_storage'] = storage
-        setattr(self.proxy_server, 'websocket_storage', storage)
+        web_app['websocket_storage'] = storage
+        setattr(proxy_server, 'websocket_storage', storage)
 
-        setattr(self.proxy_server, 'websocket_request_timeout', args.timeout if args.timeout != 0.0 else None)
-        setattr(self.proxy_server, 'websocket_add_forward_headers', [s.strip().lower() for s in (['content-type'] + args.forward_headers)])
+        setattr(proxy_server, 'websocket_request_timeout', args.timeout if args.timeout != 0.0 else None)
+        setattr(proxy_server, 'websocket_add_forward_headers', [s.strip().lower() for s in (['content-type'] + args.forward_headers)])
 
         # start both servers
         self._logger.info(f'starting web server')
         await self.start_runner(
             web.AppRunner(
-                self.web_app,
+                web_app,
                 **self.__get_logging_params('webserver')
             ),
             args.web_host,
@@ -80,7 +74,7 @@ class ServerManager:
 
         self._logger.info(f'starting proxy server')
         await self.start_runner(
-            web.ServerRunner(self.proxy_server),
+            web.ServerRunner(proxy_server),
             args.proxy_host,
             args.proxy_port
         )

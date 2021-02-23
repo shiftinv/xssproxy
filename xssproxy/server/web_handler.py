@@ -57,8 +57,15 @@ async def _handle_websocket(request: web.BaseRequest):
             storage.clear()
 
 
+async def _on_shutdown(app: web.Application):
+    ws = app['websocket_storage'].get()
+    if ws is not None:
+        await ws.close()
+
+
 def setup_app(app: web.Application):
     app.add_routes([
         web.get('/{x}.js', _handle_js),
         web.get(_socket_endpoint, _handle_websocket)
     ])
+    app.on_shutdown.append(_on_shutdown)
