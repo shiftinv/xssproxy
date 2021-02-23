@@ -28,11 +28,13 @@ class ServerManager:
             'access_log': logging.getLogger(f'{prefix}.access')
         }
 
-    async def start_runner(self, runner: web.BaseRunner, host: str, port: int) -> None:
+    async def start_runner(self, runner: web.BaseRunner, host: str, port: int, log_name: str) -> None:
+        self._logger.info(f'starting {log_name} on {host}:{port}')
         self.runners.append(runner)
         await runner.setup()
         site = web.TCPSite(runner, host, port)
         await site.start()
+        self._logger.info(f'started {log_name}')
 
     async def start_servers(self, args) -> None:
         # re: logging
@@ -41,13 +43,14 @@ class ServerManager:
         #     -> as a workaround, pass to web.Server directly
 
         # initialize javascript/websocket server
-        web_app = web.Application(logger=self.__get_logging_params('webserver')['logger'])
+        web_logger_params = self.__get_logging_params('web')
+        web_app = web.Application(logger=web_logger_params['logger'])
         web_handler.setup_app(web_app)
 
         # initialize local proxy server
         proxy_server = web.Server(
             None,
-            **self.__get_logging_params('proxyserver')
+            **self.__get_logging_params('proxy')
         )
         proxy_handler.setup_server(proxy_server)
 
@@ -61,21 +64,19 @@ class ServerManager:
         setattr(proxy_server, 'websocket_add_forward_headers', [s.strip().lower() for s in (['content-type'] + args.forward_headers)])
 
         # start both servers
-        self._logger.info(f'starting web server')
         await self.start_runner(
             web.AppRunner(
                 web_app,
-                **self.__get_logging_params('webserver')
+                **web_logger_params
             ),
             args.web_host,
-            args.web_port
+            args.web_port,
+            'web server'
         )
-        self._logger.info(f'started web server')
 
-        self._logger.info(f'starting proxy server')
         await self.start_runner(
             web.ServerRunner(proxy_server),
             args.proxy_host,
-            args.proxy_port
+            args.proxy_port,
+            'proxy server'
         )
-        self._logger.info(f'started proxy server')
